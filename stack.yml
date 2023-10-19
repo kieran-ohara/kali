@@ -1,0 +1,37 @@
+Resources:
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-09e885a81706a54ae  # Kali Linux AMI ID
+        InstanceType: t3.medium
+        KeyName: kali  # Replace with your SSH key pair name
+        SecurityGroupIds:
+          - !Ref MySecurityGroup
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs:
+              VolumeSize: 20
+              VolumeType: gp2
+          - DeviceName: /dev/sdf
+            Ebs:
+              VolumeSize: 20
+              VolumeType: gp2
+        UserData:
+          Fn::Base64: |
+            #!/bin/bash
+            sudo mkfs -t ext4 /dev/sdf
+            sudo mkdir /data
+            echo '/dev/sdf /data ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+            sudo mount -a
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH access
+      VpcId: vpc-0efb27bfe502c8105
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
